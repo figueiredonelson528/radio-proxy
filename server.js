@@ -11,7 +11,11 @@ app.use((req, res, next) => {
 });
 
 app.get('/', (req, res) => {
-    res.setHeader('Content-Type', 'audio/mpeg');
+    res.writeHead(200, {
+        'Content-Type': 'audio/mpeg',
+        'Transfer-Encoding': 'chunked',
+        'Connection': 'keep-alive'
+    });
 
     const options = {
         headers: {
@@ -24,7 +28,9 @@ app.get('/', (req, res) => {
         stream.pipe(res);
     }).on('error', (err) => {
         console.error("Erro no proxy:", err.message);
-        res.status(500).send("Erro ao ligar ao servidor da rádio.");
+        if (!res.headersSent) {
+            res.status(500).send("Erro ao ligar ao fluxo da rádio.");
+        }
     });
 });
 
